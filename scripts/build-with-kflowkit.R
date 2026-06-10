@@ -22,6 +22,7 @@ common_schema <- kflow_env_schema(
     REPORT_TONE = c("short", "detailed")
   )
 )
+docker_image <- "ghcr.io/pacificcommunity/bet-2026:v1.9"
 
 model_schema <- kflow_env_schema(
   optional = list(
@@ -229,21 +230,11 @@ report_run <- c(
   "![](model-plot.svg)",
   "EOF",
   "",
-  "if command -v quarto >/dev/null 2>&1; then",
-  "  (cd \"${OUT_DIR}\" && quarto render analysis-report.qmd --to html --output analysis-report.html)",
-  "else",
-  "  cat > \"${OUT_DIR}/analysis-report.html\" <<EOF",
-  "<!doctype html>",
-  "<html><body>",
-  "<h1>${report_title}</h1>",
-  "<p>Run label: ${run_label}</p>",
-  "<p>Mean model value: ${mean_y}</p>",
-  "<p>Plot style: ${plot_type}, ${plot_color}</p>",
-  "<p>Note: ${note}</p>",
-  "<img src=\"model-plot.svg\" style=\"max-width: 760px; width: 100%;\">",
-  "</body></html>",
-  "EOF",
+  "if ! command -v quarto >/dev/null 2>&1; then",
+  "  echo \"quarto is required for the Report step but was not found in this image\" >&2",
+  "  exit 4",
   "fi",
+  "(cd \"${OUT_DIR}\" && quarto render analysis-report.qmd --to html --output analysis-report.html)",
   "",
   "printf \"Rendered analysis-report.html from Plot outputs\\n\" > \"${OUT_DIR}/report-summary.txt\""
 )
@@ -276,7 +267,7 @@ steps <- list(
     path = "model",
     description = "Runs a small calculation and saves model-summary.csv.",
     command = "bash run.sh",
-    docker_image = "rocker/r-ver:4.4.2",
+    docker_image = docker_image,
     output_patterns = c("*.csv", "*.txt", "*.html"),
     job_config = model_schema,
     config = list(
@@ -305,7 +296,7 @@ steps <- list(
     description = "Reads Model outputs and draws model-plot.svg.",
     depends_on = "Model",
     command = "bash run.sh",
-    docker_image = "rocker/r-ver:4.4.2",
+    docker_image = docker_image,
     output_patterns = c("*.svg", "*.csv", "*.txt", "*.html"),
     job_config = common_schema,
     config = list(
@@ -334,7 +325,7 @@ steps <- list(
     description = "Reads Plot outputs and renders a Quarto-style report.",
     depends_on = "Plot",
     command = "bash run.sh",
-    docker_image = "ghcr.io/quarto-dev/quarto:1.6.42",
+    docker_image = docker_image,
     output_patterns = c("*.html", "*.qmd", "*.svg", "*.txt", "*.csv"),
     job_config = common_schema,
     config = list(

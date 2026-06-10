@@ -22,7 +22,8 @@ copy_inputs(
 
 plot <- kflow_local_test(
   "plot",
-  config = "configs/baseline-plot.env"
+  config = "configs/baseline-plot.env",
+  clean = FALSE
 )
 
 copy_inputs(
@@ -33,7 +34,8 @@ copy_inputs(
 
 report <- kflow_local_test(
   "report",
-  config = "configs/baseline-report.env"
+  config = "configs/baseline-report.env",
+  clean = FALSE
 )
 
 print(report$outputs)

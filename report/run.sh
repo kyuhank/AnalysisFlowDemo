@@ -50,20 +50,10 @@ $(if [[ "${report_tone}" == "detailed" ]]; then printf '## Details\n\nThis detai
 ![](model-plot.svg)
 EOF
 
-if command -v quarto >/dev/null 2>&1; then
-  (cd "${OUT_DIR}" && quarto render analysis-report.qmd --to html --output analysis-report.html)
-else
-  cat > "${OUT_DIR}/analysis-report.html" <<EOF
-<!doctype html>
-<html><body>
-<h1>${report_title}</h1>
-<p>Run label: ${run_label}</p>
-<p>Mean model value: ${mean_y}</p>
-<p>Plot style: ${plot_type}, ${plot_color}</p>
-<p>Note: ${note}</p>
-<img src="model-plot.svg" style="max-width: 760px; width: 100%;">
-</body></html>
-EOF
+if ! command -v quarto >/dev/null 2>&1; then
+  echo "quarto is required for the Report step but was not found in this image" >&2
+  exit 4
 fi
+(cd "${OUT_DIR}" && quarto render analysis-report.qmd --to html --output analysis-report.html)
 
 printf "Rendered analysis-report.html from Plot outputs\n" > "${OUT_DIR}/report-summary.txt"
