@@ -1,0 +1,7 @@
+.Rhistory
+.RData
+.Rproj.user/
+.kflow-local/
+outputs/
+work/
+*.tar.gz

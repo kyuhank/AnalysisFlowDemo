@@ -1,0 +1,69 @@
+command: bash run.sh
+docker_image: rocker/r-ver:4.4.2
+resources:
+  cpus: 1
+  memory: 2GB
+  disk: 2GB
+output_patterns:
+- '*.csv'
+- '*.txt'
+- '*.html'
+name: Model
+description: Runs a small calculation and saves model-summary.csv.
+job_config:
+  required: []
+  optional:
+  - RUN_LABEL
+  - N_POINTS
+  - SEED
+  - CONFIG_NOTE
+  - PLOT_COLOR
+  - PLOT_TYPE
+  - REPORT_TITLE
+  - REPORT_TONE
+  defaults:
+    RUN_LABEL: baseline
+    N_POINTS: '40'
+    SEED: '42'
+    CONFIG_NOTE: default model calculation
+    PLOT_COLOR: '#1f6f9f'
+    PLOT_TYPE: b
+    REPORT_TITLE: Analysis Report
+    REPORT_TONE: short
+  descriptions:
+    RUN_LABEL: Short model run label.
+    N_POINTS: Number of rows to generate.
+    SEED: Random seed.
+    CONFIG_NOTE: Short note saved with model outputs.
+    PLOT_COLOR: Plot colour passed to the Plot report.
+    PLOT_TYPE: R plot type passed to the Plot report.
+    REPORT_TITLE: Title passed to the Report report.
+    REPORT_TONE: Report style passed to the Report report.
+  choices:
+    PLOT_TYPE:
+    - b
+    - l
+    - p
+    REPORT_TONE:
+    - short
+    - detailed
+tags:
+  stage: model
+  demo: analysis-flow
+triggers:
+  on_success:
+  - report: Plot
+    input_jobs:
+    - '{{ job.id }}'
+    env:
+      RUN_LABEL: '{{ job.config.RUN_LABEL }}'
+      CONFIG_NOTE: Plot from {{ job.config.RUN_LABEL }} model outputs.
+      PLOT_COLOR: '{{ job.config.PLOT_COLOR }}'
+      PLOT_TYPE: '{{ job.config.PLOT_TYPE }}'
+      REPORT_TITLE: '{{ job.config.REPORT_TITLE }}'
+      REPORT_TONE: '{{ job.config.REPORT_TONE }}'
+      JOB_TITLE: 'Plot: {{ job.config.RUN_LABEL }}'
+      JOB_DESCRIPTION: Draws the {{ job.config.RUN_LABEL }} model output.
+    tags:
+      stage: plot
+      demo: analysis-flow

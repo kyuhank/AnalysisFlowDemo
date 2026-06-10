@@ -1,0 +1,67 @@
+command: bash run.sh
+docker_image: rocker/r-ver:4.4.2
+resources:
+  cpus: 1
+  memory: 2GB
+  disk: 2GB
+output_patterns:
+- '*.svg'
+- '*.csv'
+- '*.txt'
+- '*.html'
+name: Plot
+description: Reads Model outputs and draws model-plot.svg.
+input_jobs:
+- report: Model
+  latest: 1
+job_config:
+  required: []
+  optional:
+  - RUN_LABEL
+  - CONFIG_NOTE
+  - PLOT_COLOR
+  - PLOT_TYPE
+  - REPORT_TITLE
+  - REPORT_TONE
+  defaults:
+    RUN_LABEL: demo
+    CONFIG_NOTE: ''
+    PLOT_COLOR: '#1f6f9f'
+    PLOT_TYPE: b
+    REPORT_TITLE: Analysis Report
+    REPORT_TONE: short
+  descriptions:
+    RUN_LABEL: Short label shown in Kflow and saved outputs.
+    CONFIG_NOTE: Short note saved with this run.
+    PLOT_COLOR: Plot colour for the Plot step.
+    PLOT_TYPE: R plot type, such as b, l, or p.
+    REPORT_TITLE: Title used by the Report step.
+    REPORT_TONE: 'Report style: short or detailed.'
+  choices:
+    PLOT_TYPE:
+    - b
+    - l
+    - p
+    REPORT_TONE:
+    - short
+    - detailed
+tags:
+  stage: plot
+  demo: analysis-flow
+triggers:
+  on_success:
+  - report: Report
+    input_jobs:
+    - '{{ job.id }}'
+    env:
+      RUN_LABEL: '{{ job.config.RUN_LABEL }}'
+      CONFIG_NOTE: Report from {{ job.config.RUN_LABEL }} plot outputs.
+      PLOT_COLOR: '{{ job.config.PLOT_COLOR }}'
+      PLOT_TYPE: '{{ job.config.PLOT_TYPE }}'
+      REPORT_TITLE: '{{ job.config.REPORT_TITLE }}'
+      REPORT_TONE: '{{ job.config.REPORT_TONE }}'
+      JOB_TITLE: 'Report: {{ job.config.RUN_LABEL }}'
+      JOB_DESCRIPTION: Renders a small HTML report for {{ job.config.RUN_LABEL }}.
+    tags:
+      stage: report
+      demo: analysis-flow
