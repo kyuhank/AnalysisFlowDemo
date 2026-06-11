@@ -30,6 +30,23 @@ demo_payload_value <- function(payload, key, default = "") {
   as.character(value)
 }
 
+demo_config_name <- function(config) {
+  if (is.null(config)) {
+    return("none")
+  }
+  if (is.character(config)) {
+    return(paste(config, collapse = ", "))
+  }
+  env <- tryCatch(kflow_job_config(config), error = function(...) list())
+  for (key in c("JOB_KEY", "RUN_LABEL", "JOB_TITLE")) {
+    value <- env[[key]]
+    if (!is.null(value) && nzchar(as.character(value))) {
+      return(paste0("R config: ", value))
+    }
+  }
+  "R config object"
+}
+
 demo_print_connection <- function(repo, branch, batch, dry_run) {
   token_state <- if (nzchar(Sys.getenv("KFLOW_API_TOKEN", ""))) "set" else "missing"
   message("")
@@ -54,7 +71,7 @@ demo_print_api_call <- function(report_code, config, payload, step, dry_run) {
   message("")
   message("[", step, "] POST ", demo_api_url(sprintf("/api/job/%s", report_code)))
   message("  report       : ", report_code)
-  message("  config       : ", config %||% "none")
+  message("  config       : ", demo_config_name(config))
   message("  source       : ", payload$repo %||% "", "@", payload$branch %||% "", " / ", payload$target_folder %||% "repo root")
   message("  upstream jobs: ", if (input_count) paste0(input_count, " (", demo_compact(input_jobs), ")") else "none; starts fresh")
   message("  group        : ", demo_payload_value(payload, "FLOW_GROUP", "none"))
@@ -114,7 +131,7 @@ demo_submit <- function(config = NULL,
     return(list(
       dry_run = TRUE,
       job = list(
-        id = dry_id %||% paste("dry", tolower(report_code), basename(config %||% "job"), sep = "-"),
+        id = dry_id %||% paste("dry", tolower(report_code), gsub("[^A-Za-z0-9_.-]+", "-", demo_config_name(config)), sep = "-"),
         report_code = report_code,
         status = "dry-run",
         payload = payload

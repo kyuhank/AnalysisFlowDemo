@@ -541,87 +541,13 @@ written <- kflow_write_workflow(
   overwrite = TRUE
 )
 
-model_rows <- data.frame(
-  RUN_LABEL = sprintf("model-%02d", 1:20),
-  FLOW_GROUP = "linear-demo",
-  MODEL_INDEX = as.character(1:20),
-  MODEL_SET = rep(c("A", "B"), each = 10),
-  N_POINTS = as.character(rep(c(60, 80, 100, 120), length.out = 20)),
-  SEED = as.character(2000 + seq_len(20)),
-  INTERCEPT = sprintf("%.2f", rep(c(1.8, 2.1, 2.4, 1.5), length.out = 20)),
-  SLOPE = sprintf("%.2f", seq(0.42, 0.99, length.out = 20)),
-  NOISE_SD = sprintf("%.2f", rep(c(0.65, 0.85, 1.05, 1.25, 1.45), length.out = 20)),
-  SCENARIO_NOTE = sprintf("Sensitivity model %02d in bundle %s.", 1:20, rep(c("A", "B"), each = 10)),
-  STAGE = "model",
-  stringsAsFactors = FALSE
-)
-
-kflow_write_job_configs(
-  model_rows,
-  dir = "model/configs",
-  name = "{RUN_LABEL}",
-  key = "{RUN_LABEL}",
-  group = "{FLOW_GROUP}",
-  title = "Model {MODEL_INDEX}: {RUN_LABEL}",
-  description = "Fits sensitivity model {MODEL_INDEX} in bundle {MODEL_SET}.",
-  tags = c("STAGE", "MODEL_SET"),
-  metadata = c("FLOW_GROUP", "RUN_LABEL", "MODEL_SET", "MODEL_INDEX"),
-  schema = model_schema,
-  overwrite = TRUE
-)
-
-plot_rows <- data.frame(
-  RUN_LABEL = c("plot-a", "plot-b"),
-  FLOW_GROUP = "linear-demo",
-  MODEL_SET = c("A", "B"),
-  PLOT_COLOR = c("#1f6f9f", "#8a4fff"),
-  PLOT_TITLE = c("Bundle A: first ten model fits", "Bundle B: second ten model fits"),
-  SCENARIO_NOTE = c(
-    "Summarizes model-01 through model-10.",
-    "Summarizes model-11 through model-20."
-  ),
-  STAGE = "plot",
-  stringsAsFactors = FALSE
-)
-
-kflow_write_job_configs(
-  plot_rows,
-  dir = "plot/configs",
-  name = "{RUN_LABEL}",
-  key = "{RUN_LABEL}",
-  group = "{FLOW_GROUP}",
-  title = "Plot bundle {MODEL_SET}",
-  description = "Draws one sensitivity plot from ten Model jobs in bundle {MODEL_SET}.",
-  tags = c("STAGE", "MODEL_SET"),
-  metadata = c("FLOW_GROUP", "RUN_LABEL", "MODEL_SET"),
-  schema = plot_schema,
-  overwrite = TRUE
-)
-
-report_rows <- data.frame(
-  RUN_LABEL = "combined-report",
-  FLOW_GROUP = "linear-demo",
-  REPORT_TITLE = "Linear model sensitivity report",
-  REPORT_TONE = "detailed",
-  SCENARIO_NOTE = "Combines Plot A and Plot B into one Quarto report.",
-  STAGE = "report",
-  stringsAsFactors = FALSE
-)
-
-kflow_write_job_configs(
-  report_rows,
-  dir = "report/configs",
-  name = "{RUN_LABEL}",
-  key = "{RUN_LABEL}",
-  group = "{FLOW_GROUP}",
-  title = "Report: combined model plots",
-  description = "Renders one report from the two Plot jobs.",
-  tags = c("STAGE"),
-  metadata = c("FLOW_GROUP", "RUN_LABEL"),
-  schema = report_schema,
-  overwrite = TRUE
-)
+unlink(list.files("model/configs", pattern = "^model-[0-9]+[.]env$", full.names = TRUE))
+unlink(list.files("plot/configs", pattern = "^plot-[ab][.]env$", full.names = TRUE))
+unlink(file.path("report/configs", "combined-report.env"))
 
 repo_root <- normalizePath(".", winslash = "/", mustWork = TRUE)
 written$path <- sub(paste0("^", repo_root, "/?"), "", written$path)
 print(written)
+message("")
+message("Only configs/default.env is written to each report folder.")
+message("The real demo variants are created in R by scripts/job-configs.R when scripts/run-demo.R submits jobs.")

@@ -1,5 +1,6 @@
 source(Sys.getenv("KFLOWKIT_R", "../KflowKit/R/kflowkit.R"))
 source("scripts/kflow-api-trace.R")
+source("scripts/job-configs.R")
 
 repo <- Sys.getenv("KFLOW_DEMO_REPO", "kyuhank/AnalysisFlowDemo")
 branch <- Sys.getenv("KFLOW_DEMO_BRANCH", "main")
@@ -12,14 +13,15 @@ dry_run <- demo_env_flag("KFLOW_DEMO_DRY_RUN")
 
 demo_print_connection(repo, branch, batch, dry_run)
 
-model_configs <- file.path("model", "configs", sprintf("model-%02d.env", 1:20))
+model_configs <- demo_model_configs(batch)
+plot_configs <- demo_plot_configs(batch)
+report_config <- demo_report_config(batch)
 
 message("Step 1: submit 20 independent Model jobs.")
-message("Each Model starts fresh and writes a selected output archive.")
-model_results <- lapply(seq_along(model_configs), function(index) {
-  config <- model_configs[[index]]
+message("The 20 configs are generated in R now; no model-01.env files are committed.")
+model_results <- lapply(seq_len(nrow(model_configs)), function(index) {
   demo_submit(
-    config,
+    model_configs[index, , drop = FALSE],
     report_code = "Model",
     repo = repo,
     branch = branch,
@@ -27,7 +29,6 @@ model_results <- lapply(seq_along(model_configs), function(index) {
     checkout = "full",
     tags = list(demo = "analysis-flow", batch = batch),
     metadata = list(batch = batch, plan = "20 models -> 2 plots -> 1 report"),
-    env = list(FLOW_GROUP = batch),
     step = sprintf("Model %02d/20", index),
     dry_id = sprintf("dry-model-%02d", index),
     dry_run = dry_run
@@ -39,27 +40,23 @@ if (length(model_ids) != 20L) {
   stop(sprintf("Expected 20 Model jobs, got %s.", length(model_ids)), call. = FALSE)
 }
 
-plot_specs <- list(
-  A = list(config = "plot/configs/plot-a.env", models = model_ids[1:10]),
-  B = list(config = "plot/configs/plot-b.env", models = model_ids[11:20])
-)
-
 message("")
 message("Step 2: submit two Plot jobs.")
 message("Plot A waits for Model jobs 1-10; Plot B waits for Model jobs 11-20.")
-plot_results <- lapply(names(plot_specs), function(set_name) {
-  spec <- plot_specs[[set_name]]
+plot_results <- lapply(seq_len(nrow(plot_configs)), function(index) {
+  config <- plot_configs[index, , drop = FALSE]
+  set_name <- config$MODEL_SET[[1]]
+  model_rows <- model_configs$MODEL_SET == set_name
   demo_submit(
-    spec$config,
+    config,
     report_code = "Plot",
     repo = repo,
     branch = branch,
     target_folder = "plot",
     checkout = "full",
-    input_jobs = as.list(spec$models),
+    input_jobs = as.list(model_ids[model_rows]),
     tags = list(demo = "analysis-flow", batch = batch, model_set = set_name),
-    metadata = list(batch = batch, model_set = set_name, upstream_count = length(spec$models)),
-    env = list(FLOW_GROUP = batch),
+    metadata = list(batch = batch, model_set = set_name, upstream_count = sum(model_rows)),
     step = sprintf("Plot %s", set_name),
     dry_id = sprintf("dry-plot-%s", tolower(set_name)),
     dry_run = dry_run
@@ -71,7 +68,7 @@ message("")
 message("Step 3: submit one Report job.")
 message("The Report waits for Plot A and Plot B, then renders one HTML report.")
 report_result <- demo_submit(
-  "report/configs/combined-report.env",
+  report_config,
   report_code = "Report",
   repo = repo,
   branch = branch,
@@ -80,10 +77,6 @@ report_result <- demo_submit(
   input_jobs = as.list(plot_ids),
   tags = list(demo = "analysis-flow", batch = batch),
   metadata = list(batch = batch, upstream_count = length(plot_ids)),
-  env = list(
-    FLOW_GROUP = batch,
-    REPORT_TITLE = sprintf("Linear model sensitivity report (%s)", batch)
-  ),
   step = "Report",
   dry_id = "dry-report-combined",
   dry_run = dry_run
