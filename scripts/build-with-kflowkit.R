@@ -29,7 +29,7 @@ model_schema <- kflow_env_schema(
     RUN_LABEL = "Readable key used later from R, for example model-01.",
     FLOW_GROUP = "Batch label that groups many independent model jobs.",
     MODEL_INDEX = "Human model number inside the batch.",
-    MODEL_SET = "Plot bundle: A for the first ten models, B for the second ten.",
+    MODEL_SET = "Plot bundle: A for 10 models, B for 15 models, C for 5 models.",
     N_POINTS = "Number of simulated rows.",
     SEED = "Random seed for this model job.",
     INTERCEPT = "True intercept used to simulate y.",
@@ -41,17 +41,19 @@ model_schema <- kflow_env_schema(
 
 plot_schema <- kflow_env_schema(
   optional = list(
-    RUN_LABEL = "plot-a",
+    RUN_LABEL = "plot-a-10",
     FLOW_GROUP = "linear-demo",
     MODEL_SET = "A",
+    MODEL_COUNT = "10",
     PLOT_COLOR = "#1f6f9f",
     PLOT_TITLE = "Model set A sensitivity results",
     SCENARIO_NOTE = "Plot the first ten model outputs."
   ),
   descriptions = list(
-    RUN_LABEL = "Readable key used later from R, for example plot-a.",
+    RUN_LABEL = "Readable key used later from R, for example plot-a-10.",
     FLOW_GROUP = "Batch label shared with the model jobs.",
-    MODEL_SET = "Which ten-model bundle this plot summarizes.",
+    MODEL_SET = "Which model bundle this plot summarizes.",
+    MODEL_COUNT = "How many Model jobs this plot expects.",
     PLOT_COLOR = "Main colour used by the plot.",
     PLOT_TITLE = "Plot title.",
     SCENARIO_NOTE = "Short note shown in Kflow and saved outputs."
@@ -60,11 +62,11 @@ plot_schema <- kflow_env_schema(
 
 report_schema <- kflow_env_schema(
   optional = list(
-    RUN_LABEL = "combined-report",
+    RUN_LABEL = "report-a-b",
     FLOW_GROUP = "linear-demo",
     REPORT_TITLE = "Linear model sensitivity report",
     REPORT_TONE = "short",
-    SCENARIO_NOTE = "Combine both plot outputs into one report."
+    SCENARIO_NOTE = "Combine selected plot outputs into one report."
   ),
   descriptions = list(
     RUN_LABEL = "Readable key used later from R.",
@@ -333,7 +335,7 @@ input_dir <- Sys.getenv("INPUT_DIR", "inputs")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
 value <- function(name, default) Sys.getenv(name, default)
-label <- value("RUN_LABEL", "combined-report")
+label <- value("RUN_LABEL", "report-a-b")
 flow_group <- value("FLOW_GROUP", "linear-demo")
 report_title <- value("REPORT_TITLE", "Linear model sensitivity report")
 report_tone <- value("REPORT_TONE", "short")
@@ -429,7 +431,7 @@ qmd <- paste(
   "",
   "## Intro",
   "",
-  "This demo starts many independent Model jobs, groups them into two Plot jobs, then combines those two Plot outputs into this one report.",
+    "This demo starts many independent Model jobs, groups them into Plot bundles, then combines selected Plot outputs into reports.",
   "",
   sprintf("- Flow group: `%s`", flow_group),
   sprintf("- Report key: `%s`", label),
@@ -437,7 +439,7 @@ qmd <- paste(
   "",
   "## Methods",
   "",
-  "Each Model job fits a simple linear model to simulated data. Each Plot job receives ten Model output archives through Kflow's `$INPUT_DIR`. The Report job receives two Plot output archives and renders this HTML file.",
+  "Each Model job fits a simple linear model to simulated data. Each Plot job receives a selected bundle of Model output archives through Kflow's `$INPUT_DIR`. Each Report job receives one or more Plot output archives and renders this HTML file.",
   "",
   "## Plot bundles",
   "",
@@ -498,37 +500,37 @@ steps <- list(
     tags = list(demo = "analysis-flow", stage = "model"),
     config = list(RUN_LABEL = "model-01", MODEL_INDEX = "1", MODEL_SET = "A"),
     config_title = "Model demo default",
-    config_description = "Default model config; generated configs run the full 20-model batch.",
+    config_description = "Default model config; generated configs run the full 30-model batch.",
     run = model_run,
     files = list("task.R" = model_task)
   ),
   kflow_step(
     name = "Plot",
     path = "plot",
-    description = "Reads ten Model outputs and draws one sensitivity plot.",
+    description = "Reads a bundle of Model outputs and draws one sensitivity plot.",
     command = "bash run.sh",
     docker_image = docker_image,
     output_patterns = c("*.svg", "*.csv", "*.txt", "*.html"),
     job_config = plot_schema,
     tags = list(demo = "analysis-flow", stage = "plot"),
-    config = list(RUN_LABEL = "plot-a", MODEL_SET = "A"),
+    config = list(RUN_LABEL = "plot-a-10", MODEL_SET = "A", MODEL_COUNT = "10"),
     config_title = "Plot demo default",
-    config_description = "Default plot config; run-demo.R submits Plot A and Plot B from explicit Model job groups.",
+    config_description = "Default plot config; run-demo.R submits Plot A, Plot B, and Plot C from explicit Model job groups.",
     run = plot_run,
     files = list("task.R" = plot_task)
   ),
   kflow_step(
     name = "Report",
     path = "report",
-    description = "Combines two Plot outputs and renders one Quarto HTML report.",
+    description = "Combines selected Plot outputs and renders one Quarto HTML report.",
     command = "bash run.sh",
     docker_image = docker_image,
     output_patterns = c("*.html", "*.qmd", "*.svg", "*.csv", "*.txt"),
     job_config = report_schema,
     tags = list(demo = "analysis-flow", stage = "report"),
-    config = list(RUN_LABEL = "combined-report", REPORT_TONE = "short"),
+    config = list(RUN_LABEL = "report-a-b", REPORT_TONE = "short"),
     config_title = "Combined report default",
-    config_description = "Default report config; run-demo.R submits one Report after both Plot jobs.",
+    config_description = "Default report config; run-demo.R submits reports after selected Plot jobs.",
     run = report_run,
     files = list("task.R" = report_task)
   )
@@ -542,7 +544,7 @@ written <- kflow_write_workflow(
 )
 
 unlink(list.files("model/configs", pattern = "^model-[0-9]+[.]env$", full.names = TRUE))
-unlink(list.files("plot/configs", pattern = "^plot-[ab][.]env$", full.names = TRUE))
+unlink(list.files("plot/configs", pattern = "^plot-[a-z0-9-]+[.]env$", full.names = TRUE))
 unlink(file.path("report/configs", "combined-report.env"))
 
 repo_root <- normalizePath(".", winslash = "/", mustWork = TRUE)

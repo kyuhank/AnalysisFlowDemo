@@ -10,27 +10,30 @@ output_patterns:
 - '*.txt'
 - '*.html'
 name: Plot
-description: Reads ten Model outputs and draws one sensitivity plot.
+description: Reads a bundle of Model outputs and draws one sensitivity plot.
 job_config:
   required: []
   optional:
   - RUN_LABEL
   - FLOW_GROUP
   - MODEL_SET
+  - MODEL_COUNT
   - PLOT_COLOR
   - PLOT_TITLE
   - SCENARIO_NOTE
   defaults:
-    RUN_LABEL: plot-a
+    RUN_LABEL: plot-a-10
     FLOW_GROUP: linear-demo
     MODEL_SET: A
+    MODEL_COUNT: '10'
     PLOT_COLOR: '#1f6f9f'
     PLOT_TITLE: Model set A sensitivity results
     SCENARIO_NOTE: Plot the first ten model outputs.
   descriptions:
-    RUN_LABEL: Readable key used later from R, for example plot-a.
+    RUN_LABEL: Readable key used later from R, for example plot-a-10.
     FLOW_GROUP: Batch label shared with the model jobs.
-    MODEL_SET: Which ten-model bundle this plot summarizes.
+    MODEL_SET: Which model bundle this plot summarizes.
+    MODEL_COUNT: How many Model jobs this plot expects.
     PLOT_COLOR: Main colour used by the plot.
     PLOT_TITLE: Plot title.
     SCENARIO_NOTE: Short note shown in Kflow and saved outputs.

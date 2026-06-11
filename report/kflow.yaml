@@ -11,7 +11,7 @@ output_patterns:
 - '*.csv'
 - '*.txt'
 name: Report
-description: Combines two Plot outputs and renders one Quarto HTML report.
+description: Combines selected Plot outputs and renders one Quarto HTML report.
 job_config:
   required: []
   optional:
@@ -21,11 +21,11 @@ job_config:
   - REPORT_TONE
   - SCENARIO_NOTE
   defaults:
-    RUN_LABEL: combined-report
+    RUN_LABEL: report-a-b
     FLOW_GROUP: linear-demo
     REPORT_TITLE: Linear model sensitivity report
     REPORT_TONE: short
-    SCENARIO_NOTE: Combine both plot outputs into one report.
+    SCENARIO_NOTE: Combine selected plot outputs into one report.
   descriptions:
     RUN_LABEL: Readable key used later from R.
     FLOW_GROUP: Batch label shared with the plot jobs.

@@ -15,7 +15,7 @@ message("The configs are R objects, not committed model-01.env files.")
 batch <- "local-smoke"
 models <- demo_model_configs(batch)[1:2, , drop = FALSE]
 plots <- demo_plot_configs(batch)[1, , drop = FALSE]
-report_config <- demo_report_config(batch)
+report_config <- demo_report_configs(batch)[1, , drop = FALSE]
 
 model_01 <- kflow_local_test(
   "model",

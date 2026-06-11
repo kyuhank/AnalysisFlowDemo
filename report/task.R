@@ -3,7 +3,7 @@ input_dir <- Sys.getenv("INPUT_DIR", "inputs")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
 value <- function(name, default) Sys.getenv(name, default)
-label <- value("RUN_LABEL", "combined-report")
+label <- value("RUN_LABEL", "report-a-b")
 flow_group <- value("FLOW_GROUP", "linear-demo")
 report_title <- value("REPORT_TITLE", "Linear model sensitivity report")
 report_tone <- value("REPORT_TONE", "short")
@@ -99,7 +99,7 @@ qmd <- paste(
   "",
   "## Intro",
   "",
-  "This demo starts many independent Model jobs, groups them into two Plot jobs, then combines those two Plot outputs into this one report.",
+    "This demo starts many independent Model jobs, groups them into Plot bundles, then combines selected Plot outputs into reports.",
   "",
   sprintf("- Flow group: `%s`", flow_group),
   sprintf("- Report key: `%s`", label),
@@ -107,7 +107,7 @@ qmd <- paste(
   "",
   "## Methods",
   "",
-  "Each Model job fits a simple linear model to simulated data. Each Plot job receives ten Model output archives through Kflow's `$INPUT_DIR`. The Report job receives two Plot output archives and renders this HTML file.",
+  "Each Model job fits a simple linear model to simulated data. Each Plot job receives a selected bundle of Model output archives through Kflow's `$INPUT_DIR`. Each Report job receives one or more Plot output archives and renders this HTML file.",
   "",
   "## Plot bundles",
   "",

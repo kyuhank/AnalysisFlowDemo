@@ -1,49 +1,53 @@
 # AnalysisFlowDemo
 
-A beginner-friendly Kflow + KflowKit demo.
+A small KflowKit demo you can run from R.
 
-This repo shows the smallest useful pattern:
+R only launches the work through the Kflow API. After the API calls are accepted,
+your local R session can stop. Kflow keeps the graph, submits HTCondor work on
+Noumea, waits for upstream jobs, copies outputs into later jobs, and stores the
+selected outputs.
 
 ```text
-20 Model jobs -> 2 Plot jobs -> 1 Report job
+30 Model jobs
+  -> 3 Plot jobs
+       A uses 10 models
+       B uses 15 models
+       C uses 5 models
+  -> 2 Report jobs
+       Report A+B uses Plot A and Plot B
+       Report C uses Plot C
 ```
 
-R starts the work by calling the Kflow API. After the API calls are accepted,
-your R session can stop. Kflow keeps the dependency graph, submits HTCondor jobs
-on the submitter, copies upstream outputs into later jobs, and saves the final
-outputs.
+## What Runs
 
-## What this demo does
+`Model`
+: Fits one simple linear model and saves data, coefficients, and summaries.
 
-1. `Model` fits one simple linear model per job.
-2. `Plot` reads ten Model outputs and draws one sensitivity plot.
-3. `Report` reads the two Plot outputs and renders one HTML report.
+`Plot`
+: Reads a bundle of Model outputs from `$INPUT_DIR` and draws one SVG plot.
 
-The 20 Model settings are created in R at launch time. They are not stored as
-`model-01.env`, `model-02.env`, and so on in GitHub.
+`Report`
+: Reads one or more Plot outputs from `$INPUT_DIR` and renders an HTML report.
 
-## The repo structure
+## Files Kflow Uses
 
 ```text
 AnalysisFlowDemo/
   model/
-    kflow.yaml        # tells Kflow how to run Model
-    run.sh            # command run inside the container
-    task.R            # the actual R model script
+    kflow.yaml
+    run.sh
+    task.R
     configs/default.env
-
   plot/
     kflow.yaml
     run.sh
     task.R
     configs/default.env
-
   report/
     kflow.yaml
     run.sh
     task.R
     configs/default.env
-
   scripts/
     01-build-kflow-files.R
     02-register-kflow-reports.R
@@ -51,21 +55,16 @@ AnalysisFlowDemo/
     job-configs.R
 ```
 
-`default.env` is only a small local/default example. The real demo variants are
-created by `scripts/job-configs.R` and sent to Kflow when jobs are launched.
+The `default.env` files are examples and dashboard defaults. The 30 Model
+configs are generated in R at launch time, so GitHub does not need
+`model-01.env`, `model-02.env`, and so on.
 
-## One-time setup
-
-Install KflowKit in R:
+## One-Time R Setup
 
 ```r
 install.packages("remotes")
 remotes::install_github("kyuhank/KflowKit", auth_token = Sys.getenv("GITHUB_PAT"))
-```
 
-Tell R where Kflow is:
-
-```r
 Sys.setenv(
   KFLOW_URL = "http://127.0.0.1:8089",
   KFLOW_API_TOKEN = "<copy your token from Kflow>",
@@ -73,13 +72,13 @@ Sys.setenv(
 )
 ```
 
-For local KflowKit development, use the checkout next to this repo:
+When developing KflowKit locally next to this repo:
 
 ```r
 Sys.setenv(KFLOWKIT_R = "../KflowKit/R/kflowkit.R")
 ```
 
-## Step 1. Build the Kflow files
+## 1. Build The Repo Files
 
 Run this from the repo root:
 
@@ -87,15 +86,12 @@ Run this from the repo root:
 source("scripts/01-build-kflow-files.R")
 ```
 
-This writes or refreshes:
+KflowKit writes `kflow.yaml`, `run.sh`, `task.R`, `Makefile`, and the default
+job config for each runnable folder.
 
-- `model/kflow.yaml`, `model/run.sh`, `model/task.R`
-- `plot/kflow.yaml`, `plot/run.sh`, `plot/task.R`
-- `report/kflow.yaml`, `report/run.sh`, `report/task.R`
+Commit and push after changing these files because Kflow runs the GitHub repo.
 
-Commit and push after changing these files because Kflow runs from GitHub.
-
-## Step 2. Register the reports in Kflow
+## 2. Register Reports In Kflow
 
 ```r
 source("scripts/02-register-kflow-reports.R")
@@ -109,42 +105,39 @@ Plot    -> folder plot/
 Report  -> folder report/
 ```
 
-Kflow reads each `kflow.yaml`: Docker image, command, saved outputs, job config
-schema, and dependency settings.
-
-## Step 3. Preview the launch
-
-Dry run first. This prints the API plan without creating jobs:
+## 3. Preview The API Launch
 
 ```r
 Sys.setenv(KFLOW_DEMO_DRY_RUN = "true")
 source("scripts/03-launch-via-kflow-api.R")
 ```
 
-You should see:
+You should see R print the calls it would send:
 
 ```text
-POST /api/job/Model   R config: model-01   upstream none
-POST /api/job/Plot    R config: plot-a     upstream 10 Model jobs
-POST /api/job/Report  R config: combined-report upstream 2 Plot jobs
+30 POSTs to /api/job/Model
+3 POSTs to /api/job/Plot
+2 POSTs to /api/job/Report
 ```
 
-## Step 4. Launch the demo
+## 4. Launch On Kflow
 
 ```r
 Sys.setenv(KFLOW_DEMO_DRY_RUN = "false")
 source("scripts/03-launch-via-kflow-api.R")
 ```
 
-R sends the API requests. Kflow then owns the waiting jobs:
+R sends API requests only. Kflow then owns the waiting:
 
-- Plot A waits for Model jobs 1-10.
-- Plot B waits for Model jobs 11-20.
-- Report waits for Plot A and Plot B.
+```text
+Models 1-10  -> Plot A -> Report A+B
+Models 11-25 -> Plot B -> Report A+B
+Models 26-30 -> Plot C -> Report C
+```
 
 You can close R after the API calls return.
 
-## Inspect from R
+## Inspect From R
 
 ```r
 library(KflowKit)
@@ -154,30 +147,29 @@ kflow_jobs("Plot")
 kflow_jobs("Report")
 ```
 
-Kflow shows report-local job numbers like `Job 1`, readable keys like
-`model-01`, titles, descriptions, status, submitter, commit, logs, outputs, and
-links.
+Kflow returns report-local job numbers, readable keys, titles, descriptions,
+status, submitter, commit, outputs, and links.
 
-## Local smoke test
+## Local Smoke Test
 
-Run one Model job locally before using the submitter:
+Run a tiny local test before using the submitter:
 
 ```r
 source("scripts/local-test.R")
 ```
 
-This uses the same Docker image and command that Kflow will use.
+This uses the same Docker image and commands that Kflow uses.
 
-## Customizing the demo
+## Customize It
 
-Edit `scripts/job-configs.R` to change the number of models, the model settings,
-job titles, descriptions, and grouping key.
+Edit `scripts/job-configs.R` to change job counts, grouping, titles,
+descriptions, and model settings.
 
-Edit each folder's `task.R` when the actual work changes:
+Edit the task scripts when the actual work changes:
 
-- `model/task.R`: create model outputs.
+- `model/task.R`: create Model outputs.
 - `plot/task.R`: read Model outputs from `$INPUT_DIR`.
-- `report/task.R`: read Plot outputs from `$INPUT_DIR` and render HTML.
+- `report/task.R`: read Plot outputs from `$INPUT_DIR`.
 
-The same Kflow dependency idea also works across completely separate GitHub
-repos. Kflow links reports by report code, not by folder location.
+The same pattern works when Model, Plot, and Report live in completely separate
+GitHub repos. Kflow links jobs by report code and job id/key, not by folder.

@@ -40,7 +40,7 @@ job_config:
     RUN_LABEL: Readable key used later from R, for example model-01.
     FLOW_GROUP: Batch label that groups many independent model jobs.
     MODEL_INDEX: Human model number inside the batch.
-    MODEL_SET: 'Plot bundle: A for the first ten models, B for the second ten.'
+    MODEL_SET: 'Plot bundle: A for 10 models, B for 15 models, C for 5 models.'
     N_POINTS: Number of simulated rows.
     SEED: Random seed for this model job.
     INTERCEPT: True intercept used to simulate y.
