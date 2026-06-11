@@ -92,18 +92,33 @@ Each downstream job receives the previous job's saved output archive in
 
 ## 4. Resume from an existing job
 
-If Model already ran, skip it and start Plot from those outputs:
+If Model already ran, skip it and start Plot from the same job number shown in
+Kflow:
 
 ```r
-Sys.setenv(MODEL_JOB_IDS = "abc123,def456")
-source("scripts/run-demo.R")
+kflow_submit_after(
+  "plot/configs/baseline-plot.env",
+  report_code = "Plot",
+  after_report = "Model",
+  after = 7,
+  repo = "kyuhank/AnalysisFlowDemo",
+  branch = "main",
+  target_folder = "plot"
+)
 ```
 
 If Plot already ran, skip straight to Report:
 
 ```r
-Sys.setenv(PLOT_JOB_IDS = "plotjob1,plotjob2")
-source("scripts/run-demo.R")
+kflow_submit_after(
+  "report/configs/baseline-report.env",
+  report_code = "Report",
+  after_report = "Plot",
+  after = 4,
+  repo = "kyuhank/AnalysisFlowDemo",
+  branch = "main",
+  target_folder = "report"
+)
 ```
 
 To inspect available jobs from R:
@@ -112,6 +127,7 @@ To inspect available jobs from R:
 kflow_jobs("Model")
 kflow_latest_jobs("Plot", n = 5)
 kflow_latest_job_ids("Model", n = 2)
+kflow_job_id("Model", 7)
 ```
 
 The `job` column matches Kflow's per-report numbering: Job 1, Job 2, Job 3, and

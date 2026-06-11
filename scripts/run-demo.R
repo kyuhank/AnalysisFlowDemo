@@ -24,15 +24,19 @@ paired <- function(values, fallback) {
 
 model_ids <- split_ids(Sys.getenv("MODEL_JOB_IDS"))
 plot_ids <- split_ids(Sys.getenv("PLOT_JOB_IDS"))
+model_numbers <- split_ids(Sys.getenv("MODEL_JOB_NUMBERS", Sys.getenv("MODEL_RUN_NUMBERS", "")))
+plot_numbers <- split_ids(Sys.getenv("PLOT_JOB_NUMBERS", Sys.getenv("PLOT_RUN_NUMBERS", "")))
 
-if (length(plot_ids)) {
-  message("Starting Report from existing Plot jobs: ", paste(plot_ids, collapse = ", "))
+if (length(plot_ids) || length(plot_numbers)) {
+  plot_inputs <- if (length(plot_numbers)) plot_numbers else plot_ids
+  message("Starting Report from existing Plot jobs: ", paste(plot_inputs, collapse = ", "))
   report_results <- Map(
     function(config, job_id) {
       kflow_submit_after(
         config,
         report_code = "Report",
         after = job_id,
+        after_report = if (length(plot_numbers)) "Plot" else NULL,
         repo = repo,
         branch = branch,
         target_folder = "report",
@@ -40,17 +44,19 @@ if (length(plot_ids)) {
       )
     },
     c("report/configs/baseline-report.env", "report/configs/sensitivity-report.env"),
-    paired(plot_ids, plot_ids[1])
+    paired(plot_inputs, plot_inputs[1])
   )
   print(kflow_simplify_jobs(lapply(kflow_job_ids(report_results), kflow_job)))
-} else if (length(model_ids)) {
-  message("Starting Plot from existing Model jobs: ", paste(model_ids, collapse = ", "))
+} else if (length(model_ids) || length(model_numbers)) {
+  model_inputs <- if (length(model_numbers)) model_numbers else model_ids
+  message("Starting Plot from existing Model jobs: ", paste(model_inputs, collapse = ", "))
   plot_results <- Map(
     function(config, job_id) {
       kflow_submit_after(
         config,
         report_code = "Plot",
         after = job_id,
+        after_report = if (length(model_numbers)) "Model" else NULL,
         repo = repo,
         branch = branch,
         target_folder = "plot",
@@ -58,7 +64,7 @@ if (length(plot_ids)) {
       )
     },
     c("plot/configs/baseline-plot.env", "plot/configs/sensitivity-plot.env"),
-    paired(model_ids, model_ids[1])
+    paired(model_inputs, model_inputs[1])
   )
   print(kflow_simplify_jobs(lapply(kflow_job_ids(plot_results), kflow_job)))
   message("Kflow will start Report after each Plot job finishes.")
