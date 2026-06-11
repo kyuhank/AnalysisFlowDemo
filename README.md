@@ -1,59 +1,33 @@
 # AnalysisFlowDemo
 
-An R-first example for Kflow and KflowKit.
+An R-first demo for Kflow and KflowKit.
 
-The workflow is intentionally small:
+The full run is:
 
 ```text
-Model  ->  Plot  ->  Report
+20 Model jobs  ->  2 Plot jobs  ->  1 Report job
 ```
 
-- **Model** creates a numeric table and summary files.
-- **Plot** starts after a Model job succeeds and reads that Model output.
-- **Report** starts after a Plot job succeeds and renders a small HTML report.
+Each Model job fits a tiny linear model with different sensitivity settings.
+Plot A receives Model 1-10, Plot B receives Model 11-20, and the final Report
+receives both Plot outputs and renders one Quarto HTML report.
 
-Kflow owns the dependency chain. R only creates the files, registers the reports,
-and starts the first jobs.
-
-## 1. Generate the Kflow files
+## Build the Kflow folders
 
 ```r
 source("../KflowKit/R/kflowkit.R")
 source("scripts/build-with-kflowkit.R")
 ```
 
-This writes the runnable folders:
+This writes:
 
 ```text
-model/
-  kflow.yaml
-  run.sh
-  task.R
-  configs/baseline.env
-  configs/sensitivity.env
-
-plot/
-  kflow.yaml
-  run.sh
-  task.R
-  configs/baseline-plot.env
-  configs/sensitivity-plot.env
-
-report/
-  kflow.yaml
-  run.sh
-  configs/baseline-report.env
-  configs/sensitivity-report.env
+model/   kflow.yaml, run.sh, task.R, configs/model-01.env ... model-20.env
+plot/    kflow.yaml, run.sh, task.R, configs/plot-a.env, plot-b.env
+report/  kflow.yaml, run.sh, task.R, configs/combined-report.env
 ```
 
-The `kflow.yaml` files describe Docker images, commands, outputs, dependencies,
-and automatic follow-up jobs. The `.env` files hold the user-facing job config:
-titles, descriptions, labels, plot style, report tone, seeds, and row counts.
-
-## 2. Register the reports in Kflow
-
-Make sure Kflow is running and `KFLOW_API_TOKEN` is set if your Kflow server
-requires one.
+## Register the reports
 
 ```r
 Sys.setenv(KFLOW_URL = "http://127.0.0.1:8089")
@@ -63,94 +37,50 @@ source("../KflowKit/R/kflowkit.R")
 source("scripts/register-reports.R")
 ```
 
-That creates or updates these Kflow reports:
-
-| Report | Folder | Depends on |
-| --- | --- | --- |
-| Model | `model` | fresh start |
-| Plot | `plot` | Model output |
-| Report | `report` | Plot output |
-
-## 3. Start the chain
-
-Start two Model runs with different config values:
+## Launch the grouped run
 
 ```r
 source("../KflowKit/R/kflowkit.R")
 source("scripts/run-demo.R")
 ```
 
-Kflow then takes over:
+R sends API calls and then Kflow takes over:
 
 ```text
-Model baseline      -> Plot baseline      -> Report baseline
-Model sensitivity   -> Plot sensitivity   -> Report sensitivity
+Model 01 ... Model 10  ->  Plot A
+Model 11 ... Model 20  ->  Plot B
+Plot A + Plot B        ->  Report
 ```
 
-Each downstream job receives the previous job's saved output archive in
-`$INPUT_DIR/<previous-job-id>/`.
+Plot and Report may appear as `waiting` until their upstream jobs finish. That is
+expected: Kflow starts them automatically when the required output archives are
+ready.
 
-## 4. Resume from an existing job
-
-If Model already ran, skip it and start Plot from the same job number shown in
-Kflow:
+To keep R open until the final report finishes:
 
 ```r
-kflow_submit_after(
-  "plot/configs/baseline-plot.env",
-  report_code = "Plot",
-  after_report = "Model",
-  after = 7,
-  repo = "kyuhank/AnalysisFlowDemo",
-  branch = "main",
-  target_folder = "plot"
-)
+Sys.setenv(KFLOW_DEMO_WAIT = "true")
+source("scripts/run-demo.R")
 ```
 
-If Plot already ran, skip straight to Report:
+## Inspect jobs from R
 
 ```r
-kflow_submit_after(
-  "report/configs/baseline-report.env",
-  report_code = "Report",
-  after_report = "Plot",
-  after = 4,
-  repo = "kyuhank/AnalysisFlowDemo",
-  branch = "main",
-  target_folder = "report"
-)
+kflow_jobs("Model")       # report-local Job numbers, titles, keys, statuses
+kflow_jobs("Plot")
+kflow_jobs("Report")
+kflow_jobs("Report", filter = "combined-report")
 ```
 
-To inspect available jobs from R:
+Use readable keys such as `model-01`, `plot-a`, or `combined-report` when you
+want to resume a workflow without guessing internal job ids.
 
-```r
-kflow_jobs("Model")
-kflow_latest_jobs("Plot", n = 5)
-kflow_latest_job_ids("Model", n = 2)
-kflow_job_id("Model", 7)
-```
-
-The `job` column matches Kflow's per-report numbering: Job 1, Job 2, Job 3, and
-so on.
-
-## 5. Test locally with Docker
-
-Before using the submitter, run the same folders locally:
+## Local smoke test
 
 ```r
 source("../KflowKit/R/kflowkit.R")
 source("scripts/local-test.R")
 ```
 
-The script runs Model, copies its local outputs into Plot's local input folder,
-then does the same for Report. It uses the same Docker images and commands that
-Kflow reads from each `kflow.yaml`.
-
-## Why this shape works
-
-- The repo stays ordinary GitHub code.
-- Config values live in small `.env` files that R can generate safely.
-- Kflow shows job titles, descriptions, config values, source commits, logs,
-  outputs, and job links.
-- A job id is enough to resume later: pass it as an input and Kflow copies that
-  job's saved outputs into the next run.
+The local test uses the same Docker image and scripts, but runs only a small
+two-model smoke path so it is quick.

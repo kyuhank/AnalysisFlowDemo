@@ -10,58 +10,31 @@ output_patterns:
 - '*.txt'
 - '*.html'
 name: Plot
-description: Reads Model outputs and draws model-plot.svg.
-input_jobs:
-- report: Model
-  latest: 1
+description: Reads ten Model outputs and draws one sensitivity plot.
 job_config:
   required: []
   optional:
   - RUN_LABEL
-  - CONFIG_NOTE
+  - FLOW_GROUP
+  - MODEL_SET
   - PLOT_COLOR
-  - PLOT_TYPE
-  - REPORT_TITLE
-  - REPORT_TONE
+  - PLOT_TITLE
+  - SCENARIO_NOTE
   defaults:
-    RUN_LABEL: demo
-    CONFIG_NOTE: ''
+    RUN_LABEL: plot-a
+    FLOW_GROUP: linear-demo
+    MODEL_SET: A
     PLOT_COLOR: '#1f6f9f'
-    PLOT_TYPE: b
-    REPORT_TITLE: Analysis Report
-    REPORT_TONE: short
+    PLOT_TITLE: Model set A sensitivity results
+    SCENARIO_NOTE: Plot the first ten model outputs.
   descriptions:
-    RUN_LABEL: Short label shown in Kflow and saved outputs.
-    CONFIG_NOTE: Short note saved with this run.
-    PLOT_COLOR: Plot colour for the Plot step.
-    PLOT_TYPE: R plot type, such as b, l, or p.
-    REPORT_TITLE: Title used by the Report step.
-    REPORT_TONE: 'Report style: short or detailed.'
-  choices:
-    PLOT_TYPE:
-    - b
-    - l
-    - p
-    REPORT_TONE:
-    - short
-    - detailed
+    RUN_LABEL: Readable key used later from R, for example plot-a.
+    FLOW_GROUP: Batch label shared with the model jobs.
+    MODEL_SET: Which ten-model bundle this plot summarizes.
+    PLOT_COLOR: Main colour used by the plot.
+    PLOT_TITLE: Plot title.
+    SCENARIO_NOTE: Short note shown in Kflow and saved outputs.
+  choices: []
 tags:
-  stage: plot
   demo: analysis-flow
-triggers:
-  on_success:
-  - report: Report
-    input_jobs:
-    - '{{ job.id }}'
-    env:
-      RUN_LABEL: '{{ job.config.RUN_LABEL }}'
-      CONFIG_NOTE: Report from {{ job.config.RUN_LABEL }} plot outputs.
-      PLOT_COLOR: '{{ job.config.PLOT_COLOR }}'
-      PLOT_TYPE: '{{ job.config.PLOT_TYPE }}'
-      REPORT_TITLE: '{{ job.config.REPORT_TITLE }}'
-      REPORT_TONE: '{{ job.config.REPORT_TONE }}'
-      JOB_TITLE: 'Report: {{ job.config.RUN_LABEL }}'
-      JOB_DESCRIPTION: Renders a small HTML report for {{ job.config.RUN_LABEL }}.
-    tags:
-      stage: report
-      demo: analysis-flow
+  stage: plot

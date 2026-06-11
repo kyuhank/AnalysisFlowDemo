@@ -8,44 +8,34 @@ output_patterns:
 - '*.html'
 - '*.qmd'
 - '*.svg'
-- '*.txt'
 - '*.csv'
+- '*.txt'
 name: Report
-description: Reads Plot outputs and renders a Quarto-style report.
-input_jobs:
-- report: Plot
-  latest: 1
+description: Combines two Plot outputs and renders one Quarto HTML report.
 job_config:
   required: []
   optional:
   - RUN_LABEL
-  - CONFIG_NOTE
-  - PLOT_COLOR
-  - PLOT_TYPE
+  - FLOW_GROUP
   - REPORT_TITLE
   - REPORT_TONE
+  - SCENARIO_NOTE
   defaults:
-    RUN_LABEL: demo
-    CONFIG_NOTE: ''
-    PLOT_COLOR: '#1f6f9f'
-    PLOT_TYPE: b
-    REPORT_TITLE: Analysis Report
+    RUN_LABEL: combined-report
+    FLOW_GROUP: linear-demo
+    REPORT_TITLE: Linear model sensitivity report
     REPORT_TONE: short
+    SCENARIO_NOTE: Combine both plot outputs into one report.
   descriptions:
-    RUN_LABEL: Short label shown in Kflow and saved outputs.
-    CONFIG_NOTE: Short note saved with this run.
-    PLOT_COLOR: Plot colour for the Plot step.
-    PLOT_TYPE: R plot type, such as b, l, or p.
-    REPORT_TITLE: Title used by the Report step.
-    REPORT_TONE: 'Report style: short or detailed.'
+    RUN_LABEL: Readable key used later from R.
+    FLOW_GROUP: Batch label shared with the plot jobs.
+    REPORT_TITLE: HTML report title.
+    REPORT_TONE: short or detailed.
+    SCENARIO_NOTE: Short note shown in Kflow and saved outputs.
   choices:
-    PLOT_TYPE:
-    - b
-    - l
-    - p
     REPORT_TONE:
     - short
     - detailed
 tags:
-  stage: report
   demo: analysis-flow
+  stage: report

@@ -2,81 +2,88 @@ source(Sys.getenv("KFLOWKIT_R", "../KflowKit/R/kflowkit.R"))
 
 repo <- Sys.getenv("KFLOW_DEMO_REPO", "kyuhank/AnalysisFlowDemo")
 branch <- Sys.getenv("KFLOW_DEMO_BRANCH", "main")
+batch <- Sys.getenv(
+  "KFLOW_DEMO_BATCH",
+  paste0("linear-", format(Sys.time(), "%Y%m%d-%H%M%S"))
+)
+wait_for_report <- identical(tolower(Sys.getenv("KFLOW_DEMO_WAIT", "false")), "true")
 
-split_ids <- function(value) {
-  if (is.null(value) || !length(value)) {
-    value <- ""
-  }
-  value <- trimws(value)
-  if (!nzchar(value)) {
-    return(character())
-  }
-  trimws(unlist(strsplit(value, ",")))
+print_jobs <- function(label, results) {
+  ids <- kflow_job_ids(results)
+  message(label, ": ", paste(ids, collapse = ", "))
+  print(kflow_simplify_jobs(lapply(ids, kflow_job)))
+  invisible(ids)
 }
 
-paired <- function(values, fallback) {
-  values <- values[nzchar(values)]
-  if (length(values)) {
-    return(values)
-  }
-  fallback
+model_configs <- file.path("model", "configs", sprintf("model-%02d.env", 1:20))
+
+message("Starting 20 independent Model jobs for batch ", batch)
+model_results <- kflow_run_many(
+  model_configs,
+  report_code = "Model",
+  repo = repo,
+  branch = branch,
+  target_folder = "model",
+  checkout = "full",
+  tags = list(demo = "analysis-flow", batch = batch),
+  metadata = list(batch = batch, plan = "20 models -> 2 plots -> 1 report"),
+  env = list(FLOW_GROUP = batch)
+)
+model_ids <- print_jobs("Model jobs", model_results)
+
+if (length(model_ids) != 20L) {
+  stop(sprintf("Expected 20 Model jobs, got %s.", length(model_ids)), call. = FALSE)
 }
 
-model_ids <- split_ids(Sys.getenv("MODEL_JOB_IDS"))
-plot_ids <- split_ids(Sys.getenv("PLOT_JOB_IDS"))
-model_numbers <- split_ids(Sys.getenv("MODEL_JOB_NUMBERS", Sys.getenv("MODEL_RUN_NUMBERS", "")))
-plot_numbers <- split_ids(Sys.getenv("PLOT_JOB_NUMBERS", Sys.getenv("PLOT_RUN_NUMBERS", "")))
+plot_specs <- list(
+  A = list(config = "plot/configs/plot-a.env", models = model_ids[1:10]),
+  B = list(config = "plot/configs/plot-b.env", models = model_ids[11:20])
+)
 
-if (length(plot_ids) || length(plot_numbers)) {
-  plot_inputs <- if (length(plot_numbers)) plot_numbers else plot_ids
-  message("Starting Report from existing Plot jobs: ", paste(plot_inputs, collapse = ", "))
-  report_results <- Map(
-    function(config, job_id) {
-      kflow_submit_after(
-        config,
-        report_code = "Report",
-        after = job_id,
-        after_report = if (length(plot_numbers)) "Plot" else NULL,
-        repo = repo,
-        branch = branch,
-        target_folder = "report",
-        tags = list(demo = "analysis-flow")
-      )
-    },
-    c("report/configs/baseline-report.env", "report/configs/sensitivity-report.env"),
-    paired(plot_inputs, plot_inputs[1])
-  )
-  print(kflow_simplify_jobs(lapply(kflow_job_ids(report_results), kflow_job)))
-} else if (length(model_ids) || length(model_numbers)) {
-  model_inputs <- if (length(model_numbers)) model_numbers else model_ids
-  message("Starting Plot from existing Model jobs: ", paste(model_inputs, collapse = ", "))
-  plot_results <- Map(
-    function(config, job_id) {
-      kflow_submit_after(
-        config,
-        report_code = "Plot",
-        after = job_id,
-        after_report = if (length(model_numbers)) "Model" else NULL,
-        repo = repo,
-        branch = branch,
-        target_folder = "plot",
-        tags = list(demo = "analysis-flow")
-      )
-    },
-    c("plot/configs/baseline-plot.env", "plot/configs/sensitivity-plot.env"),
-    paired(model_inputs, model_inputs[1])
-  )
-  print(kflow_simplify_jobs(lapply(kflow_job_ids(plot_results), kflow_job)))
-  message("Kflow will start Report after each Plot job finishes.")
-} else {
-  message("Starting two Model jobs. Kflow will trigger Plot, then Report, after each job succeeds.")
-  model_results <- kflow_run_many(
-    c("model/configs/baseline.env", "model/configs/sensitivity.env"),
-    report_code = "Model",
+message("Creating two Plot jobs. Each Plot waits for ten Model outputs.")
+plot_results <- lapply(names(plot_specs), function(set_name) {
+  spec <- plot_specs[[set_name]]
+  kflow_submit(
+    spec$config,
+    report_code = "Plot",
     repo = repo,
     branch = branch,
-    target_folder = "model",
-    tags = list(demo = "analysis-flow")
+    target_folder = "plot",
+    checkout = "full",
+    input_jobs = as.list(spec$models),
+    tags = list(demo = "analysis-flow", batch = batch, model_set = set_name),
+    metadata = list(batch = batch, model_set = set_name, upstream_count = length(spec$models)),
+    env = list(FLOW_GROUP = batch)
   )
-  print(kflow_simplify_jobs(lapply(kflow_job_ids(model_results), kflow_job)))
+})
+plot_ids <- print_jobs("Plot waiting jobs", plot_results)
+
+message("Creating one Report job. It waits for the two Plot outputs.")
+report_result <- kflow_submit(
+  "report/configs/combined-report.env",
+  report_code = "Report",
+  repo = repo,
+  branch = branch,
+  target_folder = "report",
+  checkout = "full",
+  input_jobs = as.list(plot_ids),
+  tags = list(demo = "analysis-flow", batch = batch),
+  metadata = list(batch = batch, upstream_count = length(plot_ids)),
+  env = list(
+    FLOW_GROUP = batch,
+    REPORT_TITLE = sprintf("Linear model sensitivity report (%s)", batch)
+  )
+)
+report_id <- print_jobs("Report waiting job", report_result)
+
+message("Kflow now owns the dependencies:")
+message("  20 Model jobs run first.")
+message("  Plot A waits for Model 1-10; Plot B waits for Model 11-20.")
+message("  One Report waits for Plot A and Plot B.")
+
+if (wait_for_report) {
+  message("Waiting for final Report job to finish...")
+  print(kflow_wait_jobs(report_id, interval = 15, timeout = 7200))
 }
+
+invisible(list(batch = batch, model_ids = model_ids, plot_ids = plot_ids, report_id = report_id))

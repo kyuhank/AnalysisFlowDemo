@@ -8,62 +8,46 @@ output_patterns:
 - '*.csv'
 - '*.txt'
 - '*.html'
+- '*.rds'
 name: Model
-description: Runs a small calculation and saves model-summary.csv.
+description: Fits one simple linear model and saves data, coefficients, and summary
+  files.
 job_config:
   required: []
   optional:
   - RUN_LABEL
+  - FLOW_GROUP
+  - MODEL_INDEX
+  - MODEL_SET
   - N_POINTS
   - SEED
-  - CONFIG_NOTE
-  - PLOT_COLOR
-  - PLOT_TYPE
-  - REPORT_TITLE
-  - REPORT_TONE
+  - INTERCEPT
+  - SLOPE
+  - NOISE_SD
+  - SCENARIO_NOTE
   defaults:
-    RUN_LABEL: baseline
-    N_POINTS: '40'
-    SEED: '42'
-    CONFIG_NOTE: default model calculation
-    PLOT_COLOR: '#1f6f9f'
-    PLOT_TYPE: b
-    REPORT_TITLE: Analysis Report
-    REPORT_TONE: short
+    RUN_LABEL: model-01
+    FLOW_GROUP: linear-demo
+    MODEL_INDEX: '1'
+    MODEL_SET: A
+    N_POINTS: '80'
+    SEED: '101'
+    INTERCEPT: '2.0'
+    SLOPE: '0.7'
+    NOISE_SD: '1.0'
+    SCENARIO_NOTE: baseline sensitivity run
   descriptions:
-    RUN_LABEL: Short model run label.
-    N_POINTS: Number of rows to generate.
-    SEED: Random seed.
-    CONFIG_NOTE: Short note saved with model outputs.
-    PLOT_COLOR: Plot colour passed to the Plot report.
-    PLOT_TYPE: R plot type passed to the Plot report.
-    REPORT_TITLE: Title passed to the Report report.
-    REPORT_TONE: Report style passed to the Report report.
-  choices:
-    PLOT_TYPE:
-    - b
-    - l
-    - p
-    REPORT_TONE:
-    - short
-    - detailed
+    RUN_LABEL: Readable key used later from R, for example model-01.
+    FLOW_GROUP: Batch label that groups many independent model jobs.
+    MODEL_INDEX: Human model number inside the batch.
+    MODEL_SET: 'Plot bundle: A for the first ten models, B for the second ten.'
+    N_POINTS: Number of simulated rows.
+    SEED: Random seed for this model job.
+    INTERCEPT: True intercept used to simulate y.
+    SLOPE: True slope used to simulate y.
+    NOISE_SD: Noise standard deviation.
+    SCENARIO_NOTE: Short note shown in Kflow and saved outputs.
+  choices: []
 tags:
-  stage: model
   demo: analysis-flow
-triggers:
-  on_success:
-  - report: Plot
-    input_jobs:
-    - '{{ job.id }}'
-    env:
-      RUN_LABEL: '{{ job.config.RUN_LABEL }}'
-      CONFIG_NOTE: Plot from {{ job.config.RUN_LABEL }} model outputs.
-      PLOT_COLOR: '{{ job.config.PLOT_COLOR }}'
-      PLOT_TYPE: '{{ job.config.PLOT_TYPE }}'
-      REPORT_TITLE: '{{ job.config.REPORT_TITLE }}'
-      REPORT_TONE: '{{ job.config.REPORT_TONE }}'
-      JOB_TITLE: 'Plot: {{ job.config.RUN_LABEL }}'
-      JOB_DESCRIPTION: Draws the {{ job.config.RUN_LABEL }} model output.
-    tags:
-      stage: plot
-      demo: analysis-flow
+  stage: model
