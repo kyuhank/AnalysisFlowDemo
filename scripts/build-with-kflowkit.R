@@ -622,4 +622,6 @@ kflow_write_job_configs(
   overwrite = TRUE
 )
 
+repo_root <- normalizePath(".", winslash = "/", mustWork = TRUE)
+written$path <- sub(paste0("^", repo_root, "/?"), "", written$path)
 print(written)
