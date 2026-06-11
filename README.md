@@ -68,9 +68,14 @@ remotes::install_github("kyuhank/KflowKit", auth_token = Sys.getenv("GITHUB_PAT"
 Sys.setenv(
   KFLOW_URL = "http://127.0.0.1:8089",
   KFLOW_API_TOKEN = "<copy your token from Kflow>",
-  KFLOW_DEMO_REPO = "kyuhank/AnalysisFlowDemo"
+  KFLOW_DEMO_REPO = "kyuhank/AnalysisFlowDemo",
+  KFLOW_DEMO_SUBMITTER = "noumea"
 )
 ```
+
+Use `KFLOW_DEMO_SUBMITTER = "suva"` when you want the same R launch script to
+send jobs to Suva instead. If you leave it unset, Kflow uses the report's saved
+submitter setting.
 
 When developing KflowKit locally next to this repo:
 

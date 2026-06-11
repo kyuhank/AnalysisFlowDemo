@@ -47,14 +47,16 @@ demo_config_name <- function(config) {
   "R config object"
 }
 
-demo_print_connection <- function(repo, branch, batch, dry_run) {
+demo_print_connection <- function(repo, branch, batch, submitter, dry_run) {
   token_state <- if (nzchar(Sys.getenv("KFLOW_API_TOKEN", ""))) "set" else "missing"
+  submitter_state <- if (nzchar(submitter)) submitter else "report default"
   message("")
   message("Kflow API launch")
   message("  R script     : scripts/run-demo.R")
   message("  Kflow API    : ", demo_api_url(""))
   message("  API token    : ", token_state)
   message("  GitHub source: ", repo, "@", branch)
+  message("  Submitter    : ", submitter_state)
   message("  Flow group   : ", batch)
   message("  Mode         : ", if (isTRUE(dry_run)) "dry run, no jobs are created" else "submit jobs to Kflow")
   message("")
@@ -113,6 +115,7 @@ demo_submit <- function(config = NULL,
                         metadata = list(),
                         env = list(),
                         step = report_code,
+                        submitter = Sys.getenv("KFLOW_DEMO_SUBMITTER", Sys.getenv("KFLOW_SUBMITTER", "")),
                         dry_id = NULL,
                         dry_run = demo_env_flag("KFLOW_DEMO_DRY_RUN")) {
   payload <- kflow_payload(
@@ -124,6 +127,7 @@ demo_submit <- function(config = NULL,
     repo = repo,
     branch = branch,
     target_folder = target_folder,
+    submitter = submitter,
     checkout = checkout
   )
   demo_print_api_call(report_code, config, payload, step, dry_run)
