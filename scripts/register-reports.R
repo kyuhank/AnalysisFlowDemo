@@ -1,4 +1,6 @@
-source(Sys.getenv("KFLOWKIT_R", "../KflowKit/R/kflowkit.R"))
+# Compatibility file name: Kflow now presents these records as tasks, while the
+# API keeps "report" in route names for older clients.
+source(Sys.getenv("KFLOWKIT_R", "../KflowKit/scripts/source-local.R"))
 
 repo <- Sys.getenv("KFLOW_DEMO_REPO", "kyuhank/AnalysisFlowDemo")
 branch <- Sys.getenv("KFLOW_DEMO_BRANCH", "main")

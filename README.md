@@ -50,7 +50,7 @@ AnalysisFlowDemo/
     configs/default.env
   scripts/
     01-build-kflow-files.R
-    02-register-kflow-reports.R
+    02-register-kflow-tasks.R
     03-launch-via-kflow-api.R
     job-configs.R
 ```
@@ -74,13 +74,13 @@ Sys.setenv(
 ```
 
 Use `KFLOW_DEMO_SUBMITTER = "suva"` when you want the same R launch script to
-send jobs to Suva instead. If you leave it unset, Kflow uses the report's saved
+send jobs to Suva instead. If you leave it unset, Kflow uses the task's saved
 submitter setting.
 
 When developing KflowKit locally next to this repo:
 
 ```r
-Sys.setenv(KFLOWKIT_R = "../KflowKit/R/kflowkit.R")
+Sys.setenv(KFLOWKIT_R = "../KflowKit/scripts/source-local.R")
 ```
 
 ## 1. Build The Repo Files
@@ -96,13 +96,13 @@ job config for each runnable folder.
 
 Commit and push after changing these files because Kflow runs the GitHub repo.
 
-## 2. Register Reports In Kflow
+## 2. Register Tasks In Kflow
 
 ```r
-source("scripts/02-register-kflow-reports.R")
+source("scripts/02-register-kflow-tasks.R")
 ```
 
-This creates or updates three Kflow reports:
+This creates or updates three Kflow tasks:
 
 ```text
 Model   -> folder model/
@@ -152,7 +152,7 @@ kflow_jobs("Plot")
 kflow_jobs("Report")
 ```
 
-Kflow returns report-local job numbers, readable keys, titles, descriptions,
+Kflow returns task-local job numbers, readable keys, titles, descriptions,
 status, submitter, commit, outputs, and links.
 
 ## Local Smoke Test
@@ -177,4 +177,4 @@ Edit the task scripts when the actual work changes:
 - `report/task.R`: read Plot outputs from `$INPUT_DIR`.
 
 The same pattern works when Model, Plot, and Report live in completely separate
-GitHub repos. Kflow links jobs by report code and job id/key, not by folder.
+GitHub repos. Kflow links jobs by task code and job id/key, not by folder.

@@ -1,4 +1,4 @@
-source(Sys.getenv("KFLOWKIT_R", "../KflowKit/R/kflowkit.R"))
+source(Sys.getenv("KFLOWKIT_R", "../KflowKit/scripts/source-local.R"))
 
 clean_text <- function(x) {
   sub("\n$", "", sub("^\n", "", x))
@@ -431,7 +431,7 @@ qmd <- paste(
   "",
   "## Intro",
   "",
-    "This demo starts many independent Model jobs, groups them into Plot bundles, then combines selected Plot outputs into reports.",
+    "This demo starts many independent Model jobs, groups them into Plot bundles, then combines selected Plot outputs into HTML reports.",
   "",
   sprintf("- Flow group: `%s`", flow_group),
   sprintf("- Report key: `%s`", label),
@@ -530,7 +530,7 @@ steps <- list(
     tags = list(demo = "analysis-flow", stage = "report"),
     config = list(RUN_LABEL = "report-a-b", REPORT_TONE = "short"),
     config_title = "Combined report default",
-    config_description = "Default report config; run-demo.R submits reports after selected Plot jobs.",
+    config_description = "Default Report task config; run-demo.R submits Report jobs after selected Plot jobs.",
     run = report_run,
     files = list("task.R" = report_task)
   )

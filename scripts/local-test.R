@@ -1,4 +1,4 @@
-source(Sys.getenv("KFLOWKIT_R", "../KflowKit/R/kflowkit.R"))
+source(Sys.getenv("KFLOWKIT_R", "../KflowKit/scripts/source-local.R"))
 source("scripts/job-configs.R")
 
 copy_outputs <- function(outputs, to) {

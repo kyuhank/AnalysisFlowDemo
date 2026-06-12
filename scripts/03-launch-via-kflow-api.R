@@ -1,4 +1,4 @@
-source(Sys.getenv("KFLOWKIT_R", "../KflowKit/R/kflowkit.R"))
+source(Sys.getenv("KFLOWKIT_R", "../KflowKit/scripts/source-local.R"))
 
 message("Launch the demo through Kflow API")
 message("  R only sends API requests. Kflow submits Condor jobs and manages waiting links.")

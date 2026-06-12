@@ -49,7 +49,7 @@ demo_config_name <- function(config) {
 
 demo_print_connection <- function(repo, branch, batch, submitter, dry_run) {
   token_state <- if (nzchar(Sys.getenv("KFLOW_API_TOKEN", ""))) "set" else "missing"
-  submitter_state <- if (nzchar(submitter)) submitter else "report default"
+  submitter_state <- if (nzchar(submitter)) submitter else "task default"
   message("")
   message("Kflow API launch")
   message("  R script     : scripts/run-demo.R")
@@ -72,7 +72,7 @@ demo_print_api_call <- function(report_code, config, payload, step, dry_run) {
   title <- demo_payload_value(payload, "JOB_TITLE", "")
   message("")
   message("[", step, "] POST ", demo_api_url(sprintf("/api/job/%s", report_code)))
-  message("  report       : ", report_code)
+  message("  task         : ", report_code)
   message("  config       : ", demo_config_name(config))
   message("  source       : ", payload$repo %||% "", "@", payload$branch %||% "", " / ", payload$target_folder %||% "repo root")
   message("  upstream jobs: ", if (input_count) paste0(input_count, " (", demo_compact(input_jobs), ")") else "none; starts fresh")
