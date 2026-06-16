@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1645" height="423" viewBox="0 0 1645 423" role="img" aria-label="AnalysisFlowDemo guide flow summary">
+<defs>
+<linearGradient id="summaryPage" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fbfdff"/><stop offset="1" stop-color="#eef8f3"/></linearGradient>
+<filter id="summaryShadow" x="-15%" y="-35%" width="130%" height="180%"><feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#123044" flood-opacity=".13"/></filter>
+<marker id="summaryArrow" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#d27743" fill-opacity=".72"/></marker>
+</defs>
+<rect width="100%" height="100%" rx="22" fill="url(#summaryPage)"/>
+<g transform="translate(1429 28)"><rect width="162" height="34" rx="17" fill="#102334" fill-opacity=".92"/><circle cx="19" cy="17" r="9" fill="#79d1b6"/><path d="M15 17 L18 20 L24 13" fill="none" stroke="#102334" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><text x="38" y="22" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="850" fill="#ffffff">Kflow published</text></g>
+<text x="65" y="50" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="30" font-weight="850" fill="#102334">AnalysisFlowDemo guide flow</text>
+<text x="65" y="82" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#536b7e">Locked guide example: 30 Model jobs feeding 3 Plot jobs and 2 Report jobs on the Noumea submitter.</text>
+<text x="65" y="122" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="850" fill="#607789">Summary view · 35 jobs · 2 task links</text>
+<path d="M 470.0 259.5 C 537.5 259.5, 537.5 259.5, 612.0 259.5" fill="none" stroke="#d27743" stroke-width="3" stroke-opacity=".48" stroke-linecap="round" marker-end="url(#summaryArrow)"/>
+<path d="M 1025.0 259.5 C 1092.5 259.5, 1092.5 259.5, 1167.0 259.5" fill="none" stroke="#d27743" stroke-width="3" stroke-opacity=".48" stroke-linecap="round" marker-end="url(#summaryArrow)"/>
+<g filter="url(#summaryShadow)">
+<rect x="65" y="166" width="405" height="187" rx="20" fill="#ffffff" stroke="#2f86b7" stroke-opacity=".46" stroke-width="1.7"/>
+<rect x="87" y="185" width="361" height="4.5" rx="2.25" fill="#2f86b7" fill-opacity=".48"/>
+<circle cx="108" cy="227" r="17" fill="#2f86b7" fill-opacity=".12" stroke="#2f86b7" stroke-opacity=".50"/>
+<text x="108" y="233" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="850" fill="#2f86b7">1</text>
+<text x="141" y="222" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="25" font-weight="850" fill="#102334">Model</text>
+<text x="141" y="257" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="17" font-weight="800" fill="#526a7d">30 jobs</text>
+<text x="141" y="290" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="760" fill="#6a7f90">180 published outputs</text>
+</g>
+<g filter="url(#summaryShadow)">
+<rect x="620" y="166" width="405" height="187" rx="20" fill="#ffffff" stroke="#4f9d8a" stroke-opacity=".46" stroke-width="1.7"/>
+<rect x="642" y="185" width="361" height="4.5" rx="2.25" fill="#4f9d8a" fill-opacity=".48"/>
+<circle cx="663" cy="227" r="17" fill="#4f9d8a" fill-opacity=".12" stroke="#4f9d8a" stroke-opacity=".50"/>
+<text x="663" y="233" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="850" fill="#4f9d8a">2</text>
+<text x="696" y="222" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="25" font-weight="850" fill="#102334">Plot</text>
+<text x="696" y="257" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="17" font-weight="800" fill="#526a7d">3 jobs</text>
+<text x="696" y="290" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="760" fill="#6a7f90">18 published outputs</text>
+</g>
+<g filter="url(#summaryShadow)">
+<rect x="1175" y="166" width="405" height="187" rx="20" fill="#ffffff" stroke="#d87a48" stroke-opacity=".46" stroke-width="1.7"/>
+<rect x="1197" y="185" width="361" height="4.5" rx="2.25" fill="#d87a48" fill-opacity=".48"/>
+<circle cx="1218" cy="227" r="17" fill="#d87a48" fill-opacity=".12" stroke="#d87a48" stroke-opacity=".50"/>
+<text x="1218" y="233" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="850" fill="#d87a48">3</text>
+<text x="1251" y="222" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="25" font-weight="850" fill="#102334">Report</text>
+<text x="1251" y="257" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="17" font-weight="800" fill="#526a7d">2 jobs</text>
+<text x="1251" y="290" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="760" fill="#6a7f90">15 published outputs</text>
+</g>
+</svg>

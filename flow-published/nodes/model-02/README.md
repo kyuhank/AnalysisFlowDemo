@@ -1,0 +1,60 @@
+# Model 2: model-02
+
+- Task: `Model`
+- Job id: `df6159254e98`
+- Status: `completed`
+- Owner: `kyuhank`
+
+Fits sensitivity model 2 in bundle A.
+
+[Open source folder at the saved commit](https://github.com/kyuhank/AnalysisFlowDemo/tree/20057f1df3799442821edf9a325c2a94d4b196df/model)
+
+## Links
+
+- Requires: none
+- Feeds:
+  - [Plot: Plot bundle A](nodes/plot-a-10/)
+
+## Run settings
+
+- Source repository: `kyuhank/AnalysisFlowDemo`
+- Source folder: `model`
+- Commit: `20057f1df3799442821edf9a325c2a94d4b196df`
+- Command: `bash run.sh`
+- Make target: `all`
+- Docker image: `ghcr.io/pacificcommunity/bet-2026:v1.9`
+- Resources: `CPU 1 · memory 2GB · disk 2GB`
+
+Public job config:
+
+```text
+FLOW_GROUP=guide-20260616-0056
+INTERCEPT=2.10
+JOB_DESCRIPTION=Fits sensitivity model 2 in bundle A.
+JOB_KEY=model-02
+JOB_TITLE=Model 2: model-02
+MODEL_INDEX=2
+MODEL_SET=A
+NOISE_SD=0.85
+N_POINTS=80
+RUN_LABEL=model-02
+SCENARIO_NOTE=Sensitivity model 2 in bundle A.
+SEED=2002
+SLOPE=0.45
+TAG_DEMO=analysis-flow
+TAG_STAGE=model
+```
+
+## Outputs
+
+After `make`, this node's files are restored under `outputs/` in this folder.
+You can also download the full release bundle: https://github.com/kyuhank/AnalysisFlowDemo/releases/download/kflow-flow-398592774392/kflow-flow-398592774392-outputs.tar.gz
+
+| File | Size | SHA-256 |
+| --- | ---: | --- |
+| [model-summary.csv](model-summary.csv) | 334 | `9a5d8a22eb62c462` |
+| [model-fit.rds](model-fit.rds) | 7151 | `1ea365f1575b22b0` |
+| [model-coefficients.csv](model-coefficients.csv) | 184 | `eadc3f2f513417cc` |
+| [model-data.csv](model-data.csv) | 6096 | `dd57db53568d59a1` |
+| [model-summary.txt](model-summary.txt) | 132 | `90f2cc78ea3eed70` |
+| [model-summary.html](model-summary.html) | 191 | `9271c32eda15fd6c` |
